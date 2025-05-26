@@ -1,20 +1,18 @@
 import React, { useEffect } from 'react';
 import {
   Search,
-  Plus,
   Filter,
   Edit,
   Trash2,
   FileText,
   Calendar,
   User,
-  Download,
   ChevronUp,
   ChevronDown,
   Clock,
   BarChart3,
 } from 'lucide-react';
-import { useReportes, IReporte } from '../../hooks/useReportes'; // Ajusta la ruta
+import { useReportes } from '../../hooks/useReportes'; // Ajusta la ruta
 import axios from 'axios';
 import { useAuthStore } from '@auth/stores/auth';
 
@@ -79,7 +77,7 @@ const Reports: React.FC = () => {
       );
 
       console.log({res})
-      const reportesData = processApiResponse(res.data.datos);
+      const reportesData = processApiResponse(res.data);
       setReportes(reportesData);
       console.log('Reportes obtenidos:', reportesData);
       
@@ -325,9 +323,6 @@ const Reports: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Descripción
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -374,24 +369,7 @@ const Reports: React.FC = () => {
                       </div>
                     </td>
                     
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setEditingReporte(reporte)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                          title="Editar reporte"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteReporteWithRefresh(reporte.id)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
-                          title="Eliminar reporte"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+
                   </tr>
                 ))}
               </tbody>

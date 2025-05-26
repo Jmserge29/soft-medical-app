@@ -128,7 +128,9 @@ export function useReportes() {
 
     // Ordenamiento
     filtered.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let valueA: any = a[sortField]
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let valueB: any = b[sortField]
 
       // Manejo especial para fechas
@@ -336,6 +338,7 @@ export function useReportes() {
     setSearchTerm('')
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateFilters = (key: keyof FilterStateReportes, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
