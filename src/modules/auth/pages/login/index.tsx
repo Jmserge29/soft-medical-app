@@ -14,13 +14,15 @@ import { Input } from '@/components/ui/input';
 import axios from 'axios';
 import { useAuthStore } from '@auth/stores/auth';
 import toast from 'react-hot-toast';
-import { Navigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 const Login = () => {
   const [formLoading, setFormLoading] = useState<boolean>(false);
   const setData = useAuthStore((state) => state.setData);
+
+  const navigate = useNavigate();
 
   const FormLoginSchema = z.object({
     usuario: z
@@ -72,7 +74,7 @@ const Login = () => {
           },
         });
 
-        <Navigate to="/register-instruments" />;
+        navigate('/register-instruments');
       }
     } catch (error) {
       console.log('Error al iniciar sesión: ', error);

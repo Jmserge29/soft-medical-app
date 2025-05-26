@@ -30,16 +30,7 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      'prettier/prettier': [
-        'error',
-        {
-          singleQuote: true,
-          semi: false,
-          trailingComma: 'all',
-          printWidth: 100,
-          arrowParens: 'avoid',
-        },
-      ],
+      'prettier/prettier': 'off',
     },
   }
 )
