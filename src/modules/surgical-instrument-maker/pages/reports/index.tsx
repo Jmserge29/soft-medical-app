@@ -2,8 +2,6 @@ import React, { useEffect } from 'react';
 import {
   Search,
   Filter,
-  Edit,
-  Trash2,
   FileText,
   Calendar,
   User,
@@ -46,9 +44,7 @@ const Reports: React.FC = () => {
     // Manejadores principales
     handleCreateReporte,
     handleUpdateReporte,
-    handleDeleteReporte,
     handleSort,
-    loadReportes,
     exportarReportes,
 
     // Manejadores de UI
@@ -83,7 +79,6 @@ const Reports: React.FC = () => {
       
     } catch (error) {
       console.log('Error fetching reports: ', error);
-      setError('Error al cargar los reportes');
     }
   };
 
@@ -97,12 +92,6 @@ const Reports: React.FC = () => {
     if (success) {
       await fetchReportes();
     }
-  };
-
-  // Eliminar reporte con refresh
-  const handleDeleteReporteWithRefresh = async (id: number) => {
-    await handleDeleteReporte(id);
-    await fetchReportes();
   };
 
   // Obtener icono de ordenamiento
