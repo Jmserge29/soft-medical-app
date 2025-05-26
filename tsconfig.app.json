@@ -11,7 +11,7 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/modules/shared/*"],
-      "@admin/*": ["src/modules/admin/*"],
+      "@design-ui/*": ["src/modules/design-ui/*"],
       "@auth/*": ["src/modules/auth/*"],
     },
     /* Bundler mode */
