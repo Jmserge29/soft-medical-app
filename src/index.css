@@ -250,6 +250,8 @@ button:not(:disabled) {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Onest Variable', sans-serif;
+
   }
     :root {
     --sidebar-background: 0 0% 98%;

@@ -15,25 +15,23 @@ export const PrivateRoutesProvider = () => {
       <div className="flex flex-1">
         <SidebarProvider>
           <AppSidebar />
-          <main>
-            <div className="flex flex-col flex-1">
-              <section className="flex-1">
-                <RoutesWithNotFound>
-                  <Route
-                    path={SurgicalInstrumentRoutes.RegisterInstruments}
-                    element={<RegisterInstruments />}
-                  />
-                  <Route path={SurgicalInstrumentRoutes.MySurgeries} element={<MySurgeries />} />
-                </RoutesWithNotFound>
-              </section>
-              <footer className="w-full py-2 bg-white flex justify-center items-center">
-                <strong className="font-family-nunito font-semibold text-xs text-black/40">
-                  SoftMedical
-                </strong>
-              </footer>
-            </div>
-            <SidebarTrigger />
-          </main>
+          <SidebarTrigger />
+          <div className="flex flex-col flex-1">
+            <section className="flex-1">
+              <RoutesWithNotFound>
+                <Route
+                  path={SurgicalInstrumentRoutes.RegisterInstruments}
+                  element={<RegisterInstruments />}
+                />
+                <Route path={SurgicalInstrumentRoutes.MySurgeries} element={<MySurgeries />} />
+              </RoutesWithNotFound>
+            </section>
+            <footer className="w-full py-2 bg-white flex justify-center items-center">
+              <strong className="font-family-nunito font-semibold text-xs text-black/40">
+                SoftMedical
+              </strong>
+            </footer>
+          </div>
         </SidebarProvider>
       </div>
     </section>

@@ -62,10 +62,10 @@ export const StepProgress: React.FC<StepProgressProps> = ({ steps, titleProgress
   const getStatusText = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'Completed'
+        return 'Completado'
       case 'in-progress':
         return 'In Progress'
-      case 'pending':
+      case 'Pendiente':
         return 'Pending'
       default:
         return 'Pending'
@@ -73,8 +73,8 @@ export const StepProgress: React.FC<StepProgressProps> = ({ steps, titleProgress
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-      <div>
+    <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl cursor-pointer transition-shadow duration-300">
+      <div className="flex items-center justify-center py-4">
         <h4>{titleProgress}</h4>
       </div>
       <div className="flex items-center justify-between relative">
@@ -84,23 +84,20 @@ export const StepProgress: React.FC<StepProgressProps> = ({ steps, titleProgress
 
           return (
             <div key={step.id} className="flex flex-col items-center relative flex-1">
-              {/* Línea conectora */}
               {!isLastStep && (
                 <div
                   className={`absolute top-6 left-1/2 w-full h-0.5 ${styles.line} transform translate-x-1/2 z-0`}
                 />
               )}
 
-              {/* Círculo del paso */}
               <div
                 className={`w-12 h-12 rounded-full border-2 flex items-center justify-center relative z-10 ${styles.circle}`}
               >
                 {getStepIcon(step)}
               </div>
 
-              {/* Información del paso */}
               <div className="mt-3 text-center">
-                <div className="text-xs text-gray-500 font-medium mb-1">STEP {step.id}</div>
+                <div className="text-xs text-gray-500 font-medium mb-1">Paso {step.id}</div>
                 <div className={`text-sm font-semibold ${styles.text} mb-1`}>{step.title}</div>
                 <div className={`text-xs font-medium px-2 py-1 rounded ${styles.label}`}>
                   {getStatusText(step.status)}
