@@ -15,7 +15,7 @@ import axios from 'axios';
 import { useAuthStore } from '@auth/stores/auth';
 
 const Reports: React.FC = () => {
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const {accessToken} = useAuthStore();
 
   const {
     // Estados principales
