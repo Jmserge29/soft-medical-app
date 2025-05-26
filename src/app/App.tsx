@@ -1,7 +1,7 @@
-import { Router } from '@shared/components/routing/router';
+import { Router } from '@shared/components/routing/router'
 
 function App() {
-  return <Router />;
+  return <Router />
 }
 
-export default App;
+export default App
