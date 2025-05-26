@@ -8,6 +8,7 @@ const RegisterInstruments = lazy(
   () => import('@/modules/surgical-instrument-maker/pages/register-instruments'),
 )
 const MySurgeries = lazy(() => import('@/modules/surgical-instrument-maker/pages/my-surgeries'))
+const Reports = lazy(() => import('@/modules/surgical-instrument-maker/pages/reports'))
 
 export const PrivateRoutesProvider = () => {
   return (
@@ -24,6 +25,7 @@ export const PrivateRoutesProvider = () => {
                   element={<RegisterInstruments />}
                 />
                 <Route path={SurgicalInstrumentRoutes.MySurgeries} element={<MySurgeries />} />
+                <Route path={SurgicalInstrumentRoutes.Reports} element={<Reports />} />
               </RoutesWithNotFound>
             </section>
             <footer className="w-full py-2 bg-white flex justify-center items-center">
