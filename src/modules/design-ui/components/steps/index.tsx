@@ -47,6 +47,8 @@ export const StepProgress: React.FC<StepProgressProps> = ({
   const [reporte, setReporte] = useState('');
   const [open, setOpen] = useState(false);
   const { accessToken, user } = useAuthStore();
+  const [openFinalizar, setOpenFinalizar] = useState(false);
+  const [reporteFinal, setReporteFinal] = useState('');
 
   const getStepIcon = (step: Step) => {
     switch (step.status) {
@@ -138,10 +140,48 @@ export const StepProgress: React.FC<StepProgressProps> = ({
     }
   };
 
+  const handleFinalizarCirugia = async () => {
+    if (!cirugia.horaFin) {
+      try {
+        const res = await axios.put(
+          `${import.meta.env.VITE_API_URL}/cirugias/finalizar`,
+          {
+            idCirugia: cirugia.id,
+            reportesFinales: [reporteFinal.trim()],
+            idUsuario: user?.idUsuario,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        console.log(res);
+        refrescarCirugias();
+        toast.success('Cirugía finalizada correctamente');
+        setOpenFinalizar(false);
+      } catch (error) {
+        console.error('Error al finalizar cirugía:', error);
+        toast.error('Error al finalizar cirugía');
+      }
+    } else {
+      toast.error('La cirugía ya fue finalizada');
+    }
+  };
+
   return (
     <>
       <div
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (cirugia.horaInicio === null) {
+            setOpen((prev) => !prev)
+            return
+          }
+          if (cirugia.horaFin === null) {
+            setOpenFinalizar((prev) => !prev)
+            return
+          }
+        }}
         className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl cursor-pointer transition-shadow duration-300"
       >
         <div className="flex items-center justify-center py-4">
@@ -188,92 +228,119 @@ export const StepProgress: React.FC<StepProgressProps> = ({
         </div>
       </div>
 
-      {open && (
-        <Dialog
-          open={open}
-          onOpenChange={(isOpen) => {
-            setOpen(isOpen);
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Selecciona los instrumentos</DialogTitle>
-              <DialogDescription>
-                Escoge los instrumentos que se usarán en esta cirugía.
-              </DialogDescription>
-            </DialogHeader>
+      {/* Diálogo: Iniciar cirugía */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Selecciona los instrumentos</DialogTitle>
+            <DialogDescription>
+              Escoge los instrumentos que se usarán en esta cirugía.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-4">
-              <Select
-                onValueChange={(value) => {
-                  const id = Number(value);
-                  if (!selectedInstruments.includes(id)) {
-                    setSelectedInstruments((prev) => [...prev, id]);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar instrumentos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <ScrollArea className="h-40">
-                    {instruments.map((instrument) => (
-                      <SelectItem
-                        key={instrument.id}
-                        value={instrument.id.toString()}
-                      >
-                        {instrument.nombreInstrumental}
-                      </SelectItem>
-                    ))}
-                  </ScrollArea>
-                </SelectContent>
-              </Select>
-
-              {/* Mostrar instrumentos seleccionados */}
-              <div className="flex flex-wrap gap-2">
-                {selectedInstruments.map((id) => {
-                  const inst = instruments.find((i) => i.id === id);
-                  return inst ? (
-                    <Badge
-                      key={id}
-                      variant="secondary"
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setSelectedInstruments((prev) =>
-                          prev.filter((instId) => instId !== id)
-                        )
-                      }
+          <div className="space-y-4">
+            <Select
+              onValueChange={(value) => {
+                const id = Number(value);
+                if (!selectedInstruments.includes(id)) {
+                  setSelectedInstruments((prev) => [...prev, id]);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar instrumentos" />
+              </SelectTrigger>
+              <SelectContent>
+                <ScrollArea className="h-40">
+                  {instruments.map((instrument) => (
+                    <SelectItem
+                      key={instrument.id}
+                      value={instrument.id.toString()}
                     >
-                      {inst.nombreInstrumental} ✕
-                    </Badge>
-                  ) : null;
-                })}
-              </div>
+                      {instrument.nombreInstrumental}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
+              </SelectContent>
+            </Select>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reporte inicial
-                </label>
-                <textarea
-                  rows={4}
-                  value={reporte}
-                  onChange={(e) => setReporte(e.target.value)}
-                  placeholder="Escribe el reporte inicial de la cirugía"
-                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Botón para iniciar cirugía */}
-              <button
-                onClick={handleInitCirugia}
-                className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-              >
-                Iniciar cirugía
-              </button>
+            <div className="flex flex-wrap gap-2">
+              {selectedInstruments.map((id) => {
+                const inst = instruments.find((i) => i.id === id);
+                return inst ? (
+                  <Badge
+                    key={id}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() =>
+                      setSelectedInstruments((prev) =>
+                        prev.filter((instId) => instId !== id)
+                      )
+                    }
+                  >
+                    {inst.nombreInstrumental} ✕
+                  </Badge>
+                ) : null;
+              })}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reporte inicial
+              </label>
+              <textarea
+                rows={4}
+                value={reporte}
+                onChange={(e) => setReporte(e.target.value)}
+                placeholder="Escribe el reporte inicial de la cirugía"
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <button
+              onClick={handleInitCirugia}
+              className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              Iniciar cirugía
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo: Finalizar cirugía */}
+      <Dialog open={openFinalizar} onOpenChange={setOpenFinalizar}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Finalizar cirugía</DialogTitle>
+            <DialogDescription>
+              Ingresa el reporte final antes de cerrar la cirugía.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Reporte final
+              </label>
+              <textarea
+                rows={4}
+                value={reporteFinal}
+                onChange={(e) => setReporteFinal(e.target.value)}
+                placeholder="Escribe el reporte final de la cirugía"
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
+            </div>
+
+            <button
+              onClick={handleFinalizarCirugia}
+              className="w-full mt-4 bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
+            >
+              Finalizar cirugía
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </>
   );
 };
