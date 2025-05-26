@@ -9,7 +9,6 @@ export const PublicRoutesProvider = () => {
     <RoutesWithNotFound>
       <Route index element={<Navigate to={'/'} />} />
       <Route path={AuthRoutes.Login} element={<Login />} />
-      <Route path={AuthRoutes.CreateAccount} element={<>Create account</>} />
     </RoutesWithNotFound>
   )
 }
