@@ -14,7 +14,7 @@ export const Router = () => {
         <Toaster position="top-center" reverseOrder={false} />
         <RoutesWithNotFound>
           {/* <Route element={<ProtectedRoute isAuthorized={!isAuthenticated} />}> */}
-          <Route path="/" element={<PublicRoutesProvider />} />
+          <Route path="*" element={<PublicRoutesProvider />} />
           {/* </Route> */}
           {/* <Route element={<ProtectedRoute isAuthorized={isAuthenticated} />}> */}
           <Route path={`*`} element={<PrivateRoutesProvider />} />
