@@ -1,271 +1,305 @@
-import { useState, useMemo } from 'react'
+import axios from 'axios'
+import { useState, useMemo, useEffect } from 'react'
 
-// Tipos TypeScript
-export interface SurgicalInstrument {
-  id: string
-  name: string
-  category: string
-  type: string
-  status: 'available' | 'in-use' | 'maintenance' | 'sterilization'
-  location: string
-  lastMaintenance: string
-  nextMaintenance: string
-  serialNumber: string
-  manufacturer: string
-  acquisitionDate: string
-  notes?: string
+// ====== NUEVOS TIPOS BASADOS EN TU API ======
+
+export interface InstrumentoQuirurgico {
+  id: number
+  idTipoInstrumento: number
+  tipoInstrumental: string
+  nombreInstrumental: string
+  esterilizacionInstrumental: boolean
 }
 
+// Interface para respuesta de la API
+export interface IApiResponseInstrumentos {
+  exito: boolean
+  mensaje: string
+  datos: InstrumentoQuirurgico[]
+}
+
+// Filtros simplificados basados en tu estructura
 interface FilterState {
-  category: string
-  status: string
-  location: string
+  nombreTipoInstrumento: string
+  esterilizacionInstrumental: boolean | null // null = todos, true = esterilizados, false = no esterilizados
 }
 
-export function useSurgicalInstruments() {
-  const [instruments, setInstruments] = useState<SurgicalInstrument[]>([
-    {
-      id: '1',
-      name: 'Bisturí Electrónico',
-      category: 'Corte',
-      type: 'Electrónico',
-      status: 'available',
-      location: 'Quirófano 1',
-      lastMaintenance: '2024-01-15',
-      nextMaintenance: '2024-04-15',
-      serialNumber: 'BE-001',
-      manufacturer: 'MedTech Pro',
-      acquisitionDate: '2023-06-10',
-      notes: 'Calibrado recientemente',
-    },
-    {
-      id: '2',
-      name: 'Forceps Kelly',
-      category: 'Sujeción',
-      type: 'Manual',
-      status: 'in-use',
-      location: 'Quirófano 2',
-      lastMaintenance: '2024-02-01',
-      nextMaintenance: '2024-05-01',
-      serialNumber: 'FK-045',
-      manufacturer: 'SurgicalPro',
-      acquisitionDate: '2023-03-20',
-    },
-    {
-      id: '3',
-      name: 'Monitor de Signos Vitales',
-      category: 'Monitoreo',
-      type: 'Electrónico',
-      status: 'maintenance',
-      location: 'Taller Técnico',
-      lastMaintenance: '2024-01-20',
-      nextMaintenance: '2024-03-20',
-      serialNumber: 'MSV-102',
-      manufacturer: 'VitalCare',
-      acquisitionDate: '2022-11-05',
-      notes: 'Revisión de sensores',
-    },
-    {
-      id: '4',
-      name: 'Tijeras Metzenbaum',
-      category: 'Corte',
-      type: 'Manual',
-      status: 'sterilization',
-      location: 'Central de Esterilización',
-      lastMaintenance: '2024-02-10',
-      nextMaintenance: '2024-05-10',
-      serialNumber: 'TM-078',
-      manufacturer: 'PrecisionTools',
-      acquisitionDate: '2023-08-15',
-    },
-  ])
+// ====== CUSTOM HOOK ACTUALIZADO ======
 
+export function useSurgicalInstruments({accessToken}: { accessToken: `${string}.${string}.${string}` | undefined }) {
+  // Estado principal con datos de ejemplo basados en tu estructura
+  const [instrumentos, setInstrumentos] = useState<InstrumentoQuirurgico[]>([])
+
+  // Estados de UI
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState<FilterState>({
-    category: '',
-    status: '',
-    location: '',
+    nombreTipoInstrumento: '',
+    esterilizacionInstrumental: null,
   })
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingInstrument, setEditingInstrument] = useState<SurgicalInstrument | null>(null)
-  const [newInstrument, setNewInstrument] = useState<Partial<SurgicalInstrument>>({
-    name: '',
-    category: '',
-    type: '',
-    status: 'available',
-    location: '',
-    serialNumber: '',
-    manufacturer: '',
-    acquisitionDate: '',
-    notes: '',
+  const [editingInstrumento, setEditingInstrumento] = useState<InstrumentoQuirurgico | null>(null)
+  const [newInstrumento, setNewInstrumento] = useState<Partial<InstrumentoQuirurgico>>({
+    tipoInstrumental: '',
+    nombreInstrumental: '',
+    esterilizacionInstrumental: false,
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Opciones para filtros
-  const categories = ['Corte', 'Sujeción', 'Monitoreo', 'Aspiración', 'Cauterización']
-  const statuses = ['available', 'in-use', 'maintenance', 'sterilization']
-  const locations = [
-    'Quirófano 1',
-    'Quirófano 2',
-    'Quirófano 3',
-    'Central de Esterilización',
-    'Taller Técnico',
-    'Almacén',
-  ]
+  // Opciones para filtros (basadas en los datos existentes)
+  const tiposInstrumento = useMemo(() => {
+    const tipos = new Set(instrumentos.map(inst => inst.tipoInstrumental))
+    return Array.from(tipos).sort()
+  }, [instrumentos])
 
   // Instrumentos filtrados
-  const filteredInstruments = useMemo(() => {
-    return instruments.filter(instrument => {
-      const matchesSearch =
-        instrument.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        instrument.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        instrument.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInstrumentos = useMemo(() => {
+    return instrumentos.filter(instrumento => {
+      // Filtro de búsqueda por nombre
+      const matchesSearch = 
+        instrumento.nombreInstrumental.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        instrumento.tipoInstrumental.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesCategory = !filters.category || instrument.category === filters.category
-      const matchesStatus = !filters.status || instrument.status === filters.status
-      const matchesLocation = !filters.location || instrument.location === filters.location
+      // Filtro por tipo de instrumento
+      const matchesTipo = !filters.nombreTipoInstrumento || 
+        instrumento.tipoInstrumental === filters.nombreTipoInstrumento
 
-      return matchesSearch && matchesCategory && matchesStatus && matchesLocation
+      // Filtro por esterilización
+      const matchesEsterilizacion = filters.esterilizacionInstrumental === null || 
+        instrumento.esterilizacionInstrumental === filters.esterilizacionInstrumental
+
+      return matchesSearch && matchesTipo && matchesEsterilizacion
     })
-  }, [instruments, searchTerm, filters])
+  }, [instrumentos, searchTerm, filters])
 
   // Estadísticas computadas
-  const stats = useMemo(
-    () => ({
-      total: instruments.length,
-      available: instruments.filter(i => i.status === 'available').length,
-      inUse: instruments.filter(i => i.status === 'in-use').length,
-      maintenance: instruments.filter(i => i.status === 'maintenance').length,
-      sterilization: instruments.filter(i => i.status === 'sterilization').length,
-    }),
-    [instruments],
-  )
+  const stats = useMemo(() => ({
+    total: instrumentos.length,
+    esterilizados: instrumentos.filter(i => i.esterilizacionInstrumental).length,
+    noEsterilizados: instrumentos.filter(i => !i.esterilizacionInstrumental).length,
+    porTipo: tiposInstrumento.reduce((acc, tipo) => {
+      acc[tipo] = instrumentos.filter(i => i.tipoInstrumental === tipo).length
+      return acc
+    }, {} as Record<string, number>)
+  }), [instrumentos, tiposInstrumento])
 
-  // Funciones de utilidad
-  const getStatusColor = (status: string) => {
-    const colors = {
-      available: 'bg-green-100 text-green-800 border-green-200',
-      'in-use': 'bg-blue-100 text-blue-800 border-blue-200',
-      maintenance: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      sterilization: 'bg-purple-100 text-purple-800 border-purple-200',
+  // ====== FUNCIONES DE UTILIDAD ======
+
+  const getEsterilizacionColor = (esterilizado: boolean) => {
+    return esterilizado 
+      ? 'bg-green-100 text-green-800 border-green-200' 
+      : 'bg-red-100 text-red-800 border-red-200'
+  }
+
+  const getEsterilizacionText = (esterilizado: boolean) => {
+    return esterilizado ? 'Esterilizado' : 'No Esterilizado'
+  }
+
+  const getTipoColor = (tipo: string) => {
+    const colors: Record<string, string> = {
+      'Monitoreo': 'bg-blue-100 text-blue-800 border-blue-200',
+      'Esterilización': 'bg-purple-100 text-purple-800 border-purple-200',
+      'Corte': 'bg-orange-100 text-orange-800 border-orange-200',
+      'Sujeción': 'bg-cyan-100 text-cyan-800 border-cyan-200',
     }
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200'
+    return colors[tipo] || 'bg-gray-100 text-gray-800 border-gray-200'
   }
 
-  const getStatusText = (status: string) => {
-    const texts = {
-      available: 'Disponible',
-      'in-use': 'En Uso',
-      maintenance: 'Mantenimiento',
-      sterilization: 'Esterilización',
+  // Validación
+  const validateInstrumento = (instrumento: Partial<InstrumentoQuirurgico>): boolean => {
+    return !!(
+      instrumento.nombreInstrumental?.trim() && 
+      instrumento.tipoInstrumental?.trim()
+    )
+  }
+
+  // ====== API FUNCTIONS ======
+
+  // Función para procesar respuesta de la API
+  const processApiResponse = (response: IApiResponseInstrumentos): InstrumentoQuirurgico[] => {
+    if (!response.exito) {
+      throw new Error(response.mensaje || 'Error al obtener instrumentos')
     }
-    return texts[status as keyof typeof texts] || status
+    return response.datos
   }
 
-  // Validación de instrumento
-  const validateInstrument = (instrument: Partial<SurgicalInstrument>): boolean => {
-    return !!(instrument.name && instrument.category && instrument.serialNumber)
+  // Simular carga desde API
+  const loadInstrumentos = async (): Promise<void> => {
+    setLoading(true)
+    setError(null)
+      try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/instrumentos`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      setInstrumentos(res.data.datos)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Manejadores de eventos
-  const handleCreateInstrument = () => {
-    if (!validateInstrument(newInstrument)) {
+  // ====== MANEJADORES DE EVENTOS ======
+
+  const handleCreateInstrumento = async (): Promise<boolean> => {
+    if (!validateInstrumento(newInstrumento)) {
+      setError('Por favor completa todos los campos requeridos')
       return false
     }
 
-    const instrument: SurgicalInstrument = {
-      id: Date.now().toString(),
-      name: newInstrument.name!,
-      category: newInstrument.category!,
-      type: newInstrument.type || 'Manual',
-      status: (newInstrument.status as SurgicalInstrument['status']) || 'available',
-      location: newInstrument.location || '',
-      lastMaintenance: new Date().toISOString().split('T')[0],
-      nextMaintenance: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      serialNumber: newInstrument.serialNumber!,
-      manufacturer: newInstrument.manufacturer || '',
-      acquisitionDate: newInstrument.acquisitionDate || new Date().toISOString().split('T')[0],
-      notes: newInstrument.notes || '',
+    setLoading(true)
+    try {
+      const instrumento: InstrumentoQuirurgico = {
+        idTipoInstrumento: 0, // ID temporal, deberías obtenerlo de la API o de un select
+        id: Math.max(...instrumentos.map(i => i.id), 0) + 1, // ID temporal
+        tipoInstrumental: newInstrumento.tipoInstrumental!,
+        nombreInstrumental: newInstrumento.nombreInstrumental!,
+        esterilizacionInstrumental: newInstrumento.esterilizacionInstrumental || false,
+      }
+
+      // Aquí harías la llamada a la API para crear
+      // await fetch('/api/instrumentos', { method: 'POST', body: JSON.stringify(instrumento) })
+      
+      setInstrumentos(prev => [...prev, instrumento])
+      resetForm()
+      setError(null)
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al crear instrumento')
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpdateInstrumento = async (updatedInstrumento: InstrumentoQuirurgico): Promise<void> => {
+    setLoading(true)
+    try {
+      // Aquí harías la llamada a la API para actualizar
+      // await fetch(`/api/instrumentos/${updatedInstrumento.id}`, { method: 'PUT', body: JSON.stringify(updatedInstrumento) })
+      
+      setInstrumentos(prev =>
+        prev.map(inst => (inst.id === updatedInstrumento.id ? updatedInstrumento : inst))
+      )
+      setEditingInstrumento(null)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar instrumento')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteInstrumento = async (id: number): Promise<void> => {
+    setLoading(true)
+    try {
+      // Aquí harías la llamada a la API para eliminar
+      // await fetch(`/api/instrumentos/${id}`, { method: 'DELETE' })
+      
+      setInstrumentos(prev => prev.filter(inst => inst.id !== id))
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar instrumento')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleEsterilizacion = async (id: number): Promise<void> => {
+    const instrumento = instrumentos.find(i => i.id === id)
+    if (!instrumento) return
+
+    const updated = {
+      ...instrumento,
+      esterilizacionInstrumental: !instrumento.esterilizacionInstrumental
     }
 
-    setInstruments(prev => [...prev, instrument])
-    resetForm()
-    return true
+    await handleUpdateInstrumento(updated)
   }
 
-  const handleUpdateInstrument = (updatedInstrument: SurgicalInstrument) => {
-    setInstruments(prev =>
-      prev.map(inst => (inst.id === updatedInstrument.id ? updatedInstrument : inst)),
-    )
-    setEditingInstrument(null)
-  }
-
-  const handleDeleteInstrument = (id: string) => {
-    setInstruments(prev => prev.filter(inst => inst.id !== id))
-  }
+  // ====== FUNCIONES DE UTILIDAD UI ======
 
   const resetForm = () => {
-    setNewInstrument({
-      name: '',
-      category: '',
-      type: '',
-      status: 'available',
-      location: '',
-      serialNumber: '',
-      manufacturer: '',
-      acquisitionDate: '',
-      notes: '',
+    setNewInstrumento({
+      tipoInstrumental: '',
+      nombreInstrumental: '',
+      esterilizacionInstrumental: false,
     })
     setShowCreateModal(false)
+    setError(null)
   }
 
   const clearFilters = () => {
-    setFilters({ category: '', status: '', location: '' })
+    setFilters({ 
+      nombreTipoInstrumento: '', 
+      esterilizacionInstrumental: null 
+    })
     setSearchTerm('')
   }
 
-  const updateFilters = (key: keyof FilterState, value: string) => {
+  const updateFilters = (key: keyof FilterState, value: string | boolean | null) => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
-  const updateNewInstrument = (key: keyof SurgicalInstrument, value: string) => {
-    setNewInstrument(prev => ({ ...prev, [key]: value }))
+  const updateNewInstrumento = (key: keyof InstrumentoQuirurgico, value: string | boolean | number) => {
+    setNewInstrumento(prev => ({ ...prev, [key]: value }))
   }
 
+    useEffect(() => {
+      loadInstrumentos();
+    }, []);
+  
+
+  // ====== RETURN DEL HOOK ======
+
   return {
-    // Estados
-    instruments,
-    filteredInstruments,
+    // Estados principales
+    instrumentos,
+    filteredInstrumentos,
     searchTerm,
     filters,
     showCreateModal,
-    editingInstrument,
-    newInstrument,
+    editingInstrumento,
+    newInstrumento,
     stats,
+    loading,
+    error,
 
     // Opciones
-    categories,
-    statuses,
-    locations,
+    tiposInstrumento,
 
     // Funciones de utilidad
-    getStatusColor,
-    getStatusText,
-    validateInstrument,
+    getEsterilizacionColor,
+    getEsterilizacionText,
+    getTipoColor,
+    validateInstrumento,
+    processApiResponse,
 
-    // Manejadores
-    handleCreateInstrument,
-    handleUpdateInstrument,
-    handleDeleteInstrument,
+    // Manejadores principales
+    handleCreateInstrumento,
+    handleUpdateInstrumento,
+    handleDeleteInstrumento,
+    handleToggleEsterilizacion,
+    loadInstrumentos,
+
+    // Manejadores de UI
     resetForm,
     clearFilters,
     updateFilters,
-    updateNewInstrument,
+    updateNewInstrumento,
 
-    // Setters
+    // Setters directos
     setFilters,
     setSearchTerm,
-    setNewInstrument,
+    setNewInstrumento,
     setShowCreateModal,
-    setEditingInstrument,
+    setEditingInstrumento,
+    setError,
   }
 }

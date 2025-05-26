@@ -22,15 +22,21 @@ const items = [
     url: SurgicalInstrumentRoutes.MySurgeries,
     icon: Calendar,
   },
+  {
+    title: 'Reportes',
+    url: SurgicalInstrumentRoutes.Reports,
+    icon: Calendar,
+  },
 ]
 
 export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <SidebarGroup className="mt-10">
+        <h2 className='text-gray-700 font-medium mt-5 ml-4 text-xl'>Universidad Libre</h2>
+        <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className='gap-4'>
               {items.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>

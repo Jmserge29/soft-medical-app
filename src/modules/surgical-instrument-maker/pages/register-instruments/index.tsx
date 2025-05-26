@@ -1,47 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Search,
   Plus,
   Filter,
-  Edit,
   Trash2,
   Package,
   AlertCircle,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import {
-  SurgicalInstrument,
   useSurgicalInstruments,
 } from '../../hooks/useSurgical';
 import axios from 'axios';
 import { useAuthStore } from '@auth/stores/auth';
 
 const RegisterInstruments: React.FC = () => {
-  const [instruments2, setInstruments2] = useState<[]>([]);
-  console.log(instruments2);
-  const accessToken = useAuthStore((state) => state.accessToken);
+ const accessToken = useAuthStore((state) => state.accessToken);
 
   const {
-    categories,
-    clearFilters,
-    filteredInstruments,
-    filters,
-    getStatusColor,
-    getStatusText,
-    handleCreateInstrument,
-    handleDeleteInstrument,
-    instruments,
-    showCreateModal,
-    setShowCreateModal,
-    setFilters,
-    setNewInstrument,
-    setEditingInstrument,
-    setSearchTerm,
-    statuses,
+    filteredInstrumentos,
     searchTerm,
-    locations,
-    newInstrument,
-  } = useSurgicalInstruments();
+    filters,
+    showCreateModal,
+    newInstrumento,
+    stats,
+    loading,
+    error,
 
+    // Opciones
+    tiposInstrumento,
+
+    // Funciones de utilidad
+    getEsterilizacionColor,
+    getEsterilizacionText,
+    getTipoColor,
+    processApiResponse,
+
+    // Manejadores principales
+    handleCreateInstrumento,
+    handleDeleteInstrumento,
+    handleToggleEsterilizacion,
+
+    // Manejadores de UI
+    clearFilters,
+    updateFilters,
+    updateNewInstrumento,
+
+    // Setters
+    setSearchTerm,
+    setShowCreateModal,
+    setError,
+  } = useSurgicalInstruments({accessToken});
+
+  // Función para obtener instrumentos desde la API
   const fetchInstruments = async () => {
     try {
       const res = await axios.get(
@@ -52,9 +64,17 @@ const RegisterInstruments: React.FC = () => {
           },
         }
       );
-      setInstruments2(res.data.datos);
+
+      // Procesar la respuesta usando la función del hook
+      const instrumentosData = processApiResponse(res.data);
+      console.log('Instrumentos obtenidos:', instrumentosData);
+      
+      // Aquí deberías actualizar el estado de instrumentos en el hook
+      // Si necesitas una función setInstrumentos en el hook, agrégala
+      
     } catch (error) {
       console.log('Error fetching instruments: ', error);
+      setError('Error al cargar los instrumentos');
     }
   };
 
@@ -62,13 +82,37 @@ const RegisterInstruments: React.FC = () => {
     fetchInstruments();
   }, []);
 
+  const handleCreateNewInstrument = async () => {
+    const success = await handleCreateInstrumento();
+    if (success) {
+      await fetchInstruments();
+    }
+  };
+
+  const handleDeleteInstrumentWithRefresh = async (id: number) => {
+    await handleDeleteInstrumento(id);
+    await fetchInstruments();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando instrumentos...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 mt-4">
-      {/* Blur */}
+      {/* Blur Effects */}
       <div className="absolute right-10 z-10 blur-[100px] bg-purple-500 rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
       <div className="absolute bottom-2 z-10 blur-[100px] bg-blue-500 rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
 
       <div className="relative max-w-7xl mx-auto z-20">
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Panel de Instrumentos Quirúrgicos
@@ -76,8 +120,14 @@ const RegisterInstruments: React.FC = () => {
           <p className="text-gray-600">
             Gestiona y monitorea todos los instrumentos quirúrgicos del hospital
           </p>
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
         </div>
 
+        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -87,51 +137,52 @@ const RegisterInstruments: React.FC = () => {
                   Total Instrumentos
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {instruments.length}
+                  {stats.total}
                 </p>
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                <div className="h-4 w-4 bg-green-600 rounded-full"></div>
-              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Disponibles</p>
+                <p className="text-sm font-medium text-gray-600">Esterilizados</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {instruments.filter((i) => i.status === 'available').length}
+                  {stats.esterilizados}
                 </p>
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <div className="h-4 w-4 bg-blue-600 rounded-full"></div>
-              </div>
+              <XCircle className="h-8 w-8 text-red-600" />
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">En Uso</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {instruments.filter((i) => i.status === 'in-use').length}
+                <p className="text-sm font-medium text-gray-600">No Esterilizados</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.noEsterilizados}
                 </p>
               </div>
             </div>
           </div>
+
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <AlertCircle className="h-8 w-8 text-yellow-600" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
-                  Mantenimiento
+                  Tipos Disponibles
                 </p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {instruments.filter((i) => i.status === 'maintenance').length}
+                  {tiposInstrumento.length}
                 </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="relative flex-1 max-w-md">
@@ -144,50 +195,40 @@ const RegisterInstruments: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+            
             <div className="flex flex-wrap gap-3">
+              {/* Filtro por Tipo de Instrumento */}
               <select
-                value={filters.category}
-                onChange={(e) =>
-                  setFilters({ ...filters, category: e.target.value })
-                }
+                value={filters.nombreTipoInstrumento}
+                onChange={(e) => updateFilters('nombreTipoInstrumento', e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Todas las categorías</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                <option value="">Todos los tipos</option>
+                {tiposInstrumento.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
                   </option>
                 ))}
               </select>
 
+              {/* Filtro por Esterilización */}
               <select
-                value={filters.status}
-                onChange={(e) =>
-                  setFilters({ ...filters, status: e.target.value })
+                value={
+                  filters.esterilizacionInstrumental === null 
+                    ? "" 
+                    : filters.esterilizacionInstrumental.toString()
                 }
+                onChange={(e) => {
+                  const value = e.target.value === "" 
+                    ? null 
+                    : e.target.value === "true";
+                  updateFilters('esterilizacionInstrumental', value);
+                }}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Todos los estados</option>
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {getStatusText(status)}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={filters.location}
-                onChange={(e) =>
-                  setFilters({ ...filters, location: e.target.value })
-                }
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Todas las ubicaciones</option>
-                {locations.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
+                <option value="true">Esterilizados</option>
+                <option value="false">No Esterilizados</option>
               </select>
 
               <button
@@ -217,19 +258,16 @@ const RegisterInstruments: React.FC = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Instrumento
+                    ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoría
+                    Nombre del Instrumento
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    Tipo de Instrumento
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ubicación
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Próximo Mantenimiento
+                    Estado de Esterilización
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Acciones
@@ -237,49 +275,41 @@ const RegisterInstruments: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredInstruments.map((instrument) => (
-                  <tr key={instrument.id} className="hover:bg-gray-50">
+                {filteredInstrumentos.map((instrumento) => (
+                  <tr key={instrumento.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {instrumento.id}
+                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {instrument.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          S/N: {instrument.serialNumber}
-                        </div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {instrumento.nombreInstrumental}
                       </div>
                     </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {instrument.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(instrument.status)}`}
+                      <span 
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getTipoColor(instrumento.tipoInstrumental)}`}
                       >
-                        {getStatusText(instrument.status)}
+                        {instrumento.tipoInstrumental}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {instrument.location}
+                    
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleToggleEsterilizacion(instrumento.id)}
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${getEsterilizacionColor(instrumento.esterilizacionInstrumental)}`}
+                      >
+                        {getEsterilizacionText(instrumento.esterilizacionInstrumental)}
+                      </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(
-                        instrument.nextMaintenance
-                      ).toLocaleDateString()}
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                      <div className="flex">
                         <button
-                          onClick={() => setEditingInstrument(instrument)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteInstrument(instrument.id)}
+                          onClick={() => handleDeleteInstrumentWithRefresh(instrumento.id)}
                           className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                          title="Eliminar instrumento"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -291,7 +321,7 @@ const RegisterInstruments: React.FC = () => {
             </table>
           </div>
 
-          {filteredInstruments.length === 0 && (
+          {filteredInstrumentos.length === 0 && (
             <div className="text-center py-12">
               <Package className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">
@@ -306,26 +336,23 @@ const RegisterInstruments: React.FC = () => {
 
         {/* Create Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Crear Nuevo Instrumento
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Nombre del Instrumento *
                     </label>
                     <input
                       type="text"
-                      value={newInstrument.name || ''}
+                      value={newInstrumento.nombreInstrumental || ''}
                       onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          name: e.target.value,
-                        })
+                        updateNewInstrumento('nombreInstrumental', e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       placeholder="Ej: Bisturí Electrónico"
@@ -334,162 +361,43 @@ const RegisterInstruments: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Categoría *
+                      Tipo de Instrumento *
                     </label>
                     <select
-                      value={newInstrument.category || ''}
+                      value={newInstrumento.tipoInstrumental || ''}
                       onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          category: e.target.value,
-                        })
+                        updateNewInstrumento('tipoInstrumental', e.target.value)
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Seleccionar categoría</option>
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
+                      <option value="">Seleccionar tipo</option>
+                      {tiposInstrumento.map((tipo) => (
+                        <option key={tipo} value={tipo}>
+                          {tipo}
                         </option>
                       ))}
+                      {/* Opción para agregar nuevo tipo */}
+                      <option value="Corte">Corte</option>
+                      <option value="Sujeción">Sujeción</option>
+                      <option value="Aspiración">Aspiración</option>
+                      <option value="Cauterización">Cauterización</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Tipo
+                      Estado de Esterilización
                     </label>
                     <select
-                      value={newInstrument.type || ''}
+                      value={newInstrumento.esterilizacionInstrumental ? 'true' : 'false'}
                       onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          type: e.target.value,
-                        })
+                        updateNewInstrumento('esterilizacionInstrumental', e.target.value === 'true')
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="Manual">Manual</option>
-                      <option value="Electrónico">Electrónico</option>
-                      <option value="Neumático">Neumático</option>
+                      <option value="false">No Esterilizado</option>
+                      <option value="true">Esterilizado</option>
                     </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Número de Serie *
-                    </label>
-                    <input
-                      type="text"
-                      value={newInstrument.serialNumber || ''}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          serialNumber: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Ej: BE-001"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fabricante
-                    </label>
-                    <input
-                      type="text"
-                      value={newInstrument.manufacturer || ''}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          manufacturer: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Ej: MedTech Pro"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ubicación
-                    </label>
-                    <select
-                      value={newInstrument.location || ''}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          location: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Seleccionar ubicación</option>
-                      {locations.map((loc) => (
-                        <option key={loc} value={loc}>
-                          {loc}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fecha de Adquisición
-                    </label>
-                    <input
-                      type="date"
-                      value={newInstrument.acquisitionDate || ''}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          acquisitionDate: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Estado
-                    </label>
-                    <select
-                      value={newInstrument.status || 'available'}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          status: e.target
-                            .value as SurgicalInstrument['status'],
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    >
-                      {statuses.map((status) => (
-                        <option key={status} value={status}>
-                          {getStatusText(status)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notas
-                    </label>
-                    <textarea
-                      value={newInstrument.notes || ''}
-                      onChange={(e) =>
-                        setNewInstrument({
-                          ...newInstrument,
-                          notes: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      rows={3}
-                      placeholder="Información adicional..."
-                    />
                   </div>
                 </div>
 
@@ -501,10 +409,11 @@ const RegisterInstruments: React.FC = () => {
                     Cancelar
                   </button>
                   <button
-                    onClick={handleCreateInstrument}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={handleCreateNewInstrument}
+                    disabled={loading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Crear Instrumento
+                    {loading ? 'Creando...' : 'Crear Instrumento'}
                   </button>
                 </div>
               </div>
