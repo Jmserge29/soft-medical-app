@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,10 +18,32 @@
 
 @font-face {
   font-family: 'NunitoSans';
-  src: url('/fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.woff2') format('woff2');
+  src: url('/fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.woff2')
+    format('woff2');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+}
+
+.gradient-background {
+  background-color: hsla(0, 0%, 100%, 1);
+  background-image:
+    radial-gradient(
+      circle at 91% 11%,
+      hsla(241.99999999999997, 100%, 88%, 0.66) 4.038772213247173%,
+      transparent 37.2265767974114%
+    ),
+    radial-gradient(
+      circle at 66% 37%,
+      hsla(191.91176470588238, 100%, 88%, 1) 0%,
+      transparent 63.33640956108327%
+    ),
+    radial-gradient(
+      circle at 36% 87%,
+      hsla(136.32352941176467, 100%, 88%, 1) 12.107536057085522%,
+      transparent 63.33640956108327%
+    );
+  background-blend-mode: normal, normal, normal;
 }
 
 @theme {
@@ -61,12 +83,19 @@
   --color-red-dark-active: #6b120c;
   --color-red-darker: #530e09;
 
-  --color-card-background: linear-gradient(125.95deg, #FFFFFF 28.98%, #E8EFF7 107.66%);
-  --color-card-background-error: linear-gradient(283.34deg, #FDEAE8 -18.09%, #FFFFFF 92.51%);
+  --color-card-background: linear-gradient(
+    125.95deg,
+    #ffffff 28.98%,
+    #e8eff7 107.66%
+  );
+  --color-card-background-error: linear-gradient(
+    283.34deg,
+    #fdeae8 -18.09%,
+    #ffffff 92.51%
+  );
 
   --color-card-backdrop-filter: blur(60.64516830444336px);
   --color-card-box-shadow: -50.54px 37.06px 245.95px 0px rgba(40, 47, 78, 0.2);
-
 }
 
 @layer base {
@@ -118,7 +147,7 @@ button:not(:disabled) {
 
 .animate-swipe-left {
   animation-name: swipe-left;
-  animation-duration: .8s;
+  animation-duration: 0.8s;
   animation-fill-mode: forwards;
 }
 
