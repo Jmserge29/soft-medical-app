@@ -1,6 +1,11 @@
 import { StepProgress } from '@design-ui/components/steps'
+import useCirugias from '../../hooks/useCirugias'
+import { useAuthStore } from '@auth/stores/auth'
 
 const MySurgeries = () => {
+  const { user, accessToken } = useAuthStore()
+  const { cargando, cirugias } = useCirugias({ idUsuario: user?.idUsuario ?? 0, accessToken })
+
   const steps = [
     { id: 1, title: 'Iniciar cirguría', status: 'completed' as const },
     { id: 2, title: 'Cirugía en proceso', status: 'pending' as const },
@@ -18,6 +23,10 @@ const MySurgeries = () => {
           </p>
         </div>
         <section className="grid grid-cols-2 gap-4">
+          {cargando && 'cargando...'}
+          {cirugias.length === 0 && !cargando && (
+            <p className="text-gray-500 text-xl">No hay cirugías registradas</p>
+          )}
           <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
           <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
           <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
