@@ -9,11 +9,6 @@ const MySurgeries = () => {
     accessToken,
   });
 
-  const steps = [
-    { id: 1, title: 'Iniciar cirguría', status: 'completed' as const },
-    { id: 2, title: 'Cirugía en proceso', status: 'pending' as const },
-    { id: 3, title: 'Finaliza cirugía', status: 'pending' as const },
-  ];
   return (
     <section className="min-h-screen bg-gray-50 p-6 mt-4">
       {/* Blur */}
@@ -36,14 +31,27 @@ const MySurgeries = () => {
           {cirugias.length === 0 && !cargando && (
             <p className="text-gray-500 text-xl">No hay cirugías registradas</p>
           )}
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
-          <StepProgress steps={steps} titleProgress="Cirgugía número 1" />
+            {!cargando && cirugias.map((cirugia, index) => {
+            let status: 'pending' | 'in-progress' | 'completed';
+            if (cirugia.horaInicio !== null && cirugia.horaFin !== null) {
+              status = 'completed';
+            } else if (cirugia.horaInicio !== null) {
+              status = 'in-progress';
+            } else {
+              status = 'pending';
+            }
+
+            return (
+              <StepProgress
+              steps={[
+                { id: 1, title: 'Iniciar cirugía', status: status === 'pending' ? 'pending' : 'completed' as const },
+                { id: 2, title: 'Cirugía en proceso', status: status === 'in-progress' ? 'in-progress' : status === 'completed' ? 'completed' : 'pending' as const },
+                { id: 3, title: 'Finaliza cirugía', status: status === 'completed' ? 'completed' : 'pending' as const },
+              ]}
+              titleProgress={`Cirugía N° ${index + 1}`}
+              />
+            );
+            })}
         </section>
       </div>
     </section>
