@@ -14,14 +14,12 @@ export const Router = () => {
       <Suspense fallback={<>cargando...</>}>
         <Toaster position="top-center" reverseOrder={false} />
         <RoutesWithNotFound>
-          <Route path="/*" element={<PublicRoutesProvider />} />
-          <Route path={``} element={<PrivateRoutesProvider />} />
-          {/* <Route
-            element={<ProtectedRoute isAuthorized={!isAuthenticated} />}
-          ></Route>
-          <Route
-            element={<ProtectedRoute isAuthorized={isAuthenticated} />}
-          ></Route> */}
+          {/* <Route element={<ProtectedRoute isAuthorized={!isAuthenticated} />}> */}
+          <Route path="/" element={<PublicRoutesProvider />} />
+          {/* </Route> */}
+          {/* <Route element={<ProtectedRoute isAuthorized={isAuthenticated} />}> */}
+          <Route path={`*`} element={<PrivateRoutesProvider />} />
+          {/* </Route> */}
         </RoutesWithNotFound>
       </Suspense>
     </BrowserRouter>
