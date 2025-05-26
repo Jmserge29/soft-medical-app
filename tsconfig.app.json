@@ -13,6 +13,7 @@
       "@shared/*": ["src/modules/shared/*"],
       "@design-ui/*": ["src/modules/design-ui/*"],
       "@auth/*": ["src/modules/auth/*"],
+      "@/*": ["./src/*"]
     },
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -29,4 +30,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]}
+  "include": ["src"]
+}
