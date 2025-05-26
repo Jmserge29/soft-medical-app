@@ -1,5 +1,4 @@
-<!--
-# Documentación del Proyecto: soft-medical-app
+Documentación del Proyecto: soft-medical-app
 
 ## Descripción General
 
@@ -40,7 +39,6 @@ El proyecto está organizado siguiendo las mejores prácticas para aplicaciones 
 
 Esta organización facilita la escalabilidad, el mantenimiento y la colaboración entre los participantes, permitiendo un desarrollo ágil y ordenado.
 
--->
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
