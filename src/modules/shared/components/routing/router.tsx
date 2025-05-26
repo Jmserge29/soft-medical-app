@@ -1,9 +1,14 @@
-import { Suspense } from "react"
-import { Toaster } from "react-hot-toast"
-import { BrowserRouter, Route } from "react-router-dom"
+import { Suspense } from 'react'
+import { BrowserRouter, Route } from 'react-router'
+import { PublicRoutesProvider } from './providers/public-routes'
+import { PrivateRoutesProvider } from './providers/private-routes'
+import { ProtectedRoute } from './protected-routes/protected-route'
+import { useIsAuthenticated } from '@auth/hooks/use-is-authenticated'
+import { RoutesWithNotFound } from './not-found/routes-with-not-found'
+import { Toaster } from 'react-hot-toast'
 
-const Router = () => {
-    const { isAuthenticated } = useAuth()
+export const Router = () => {
+  const isAuthenticated = useIsAuthenticated()
   return (
     <BrowserRouter>
       <Suspense fallback={<>cargando...</>}>
@@ -20,5 +25,3 @@ const Router = () => {
     </BrowserRouter>
   )
 }
-
-export default Router

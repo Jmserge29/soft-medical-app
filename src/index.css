@@ -66,3 +66,140 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+@import "tailwindcss";
+
+* {
+  scrollbar-color: #e8f1f7 transparent;
+  scrollbar-width: thin;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-VariableFont_wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NunitoSans';
+  src: url('/fonts/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-family-poppins: 'Poppins', sans-serif;
+  --font-family-nunito: 'NunitoSans', sans-serif;
+
+  --color-blue-light: #e8f1f7;
+  --color-blue-light-hover: #dce8f3;
+  --color-blue-light-active: #b7cfe5;
+  --color-blue-normal: #1663ac;
+  --color-blue-normal-hover: #14599b;
+  --color-blue-normal-active: #124f8a;
+  --color-blue-dark: #114a81;
+  --color-blue-dark-hover: #0d3b67;
+  --color-blue-dark-active: #0a2c4d;
+  --color-blue-darker: #08233c;
+
+  --color-green-light: #e6f6f4;
+  --color-green-light-hover: #d9f2ef;
+  --color-green-light-active: #b0decd;
+  --color-green-normal: #00a991;
+  --color-green-normal-hover: #009883;
+  --color-green-normal-active: #008774;
+  --color-green-dark: #00766d;
+  --color-green-dark-hover: #006557;
+  --color-green-dark-active: #004c41;
+  --color-green-darker: #003b33;
+
+  --color-red-light: #feeae8;
+  --color-red-light-hover: #fcdedd;
+  --color-red-light-active: #fabdb8;
+  --color-red-normal: #ee291b;
+  --color-red-normal-hover: #d62518;
+  --color-red-normal-active: #be2116;
+  --color-red-dark: #b31714;
+  --color-red-dark-hover: #8f1910;
+  --color-red-dark-active: #6b120c;
+  --color-red-darker: #530e09;
+
+  --color-card-background: linear-gradient(125.95deg, #FFFFFF 28.98%, #E8EFF7 107.66%);
+  --color-card-background-error: linear-gradient(283.34deg, #FDEAE8 -18.09%, #FFFFFF 92.51%);
+
+
+  --color-card-backdrop-filter: blur(60.64516830444336px);
+  --color-card-box-shadow: -50.54px 37.06px 245.95px 0px rgba(40, 47, 78, 0.2);
+
+}
+
+@layer base {
+  :root {
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+.animate-dissapear {
+  animation-name: dissapear;
+  animation-duration: var(--dissapear-animation-duration, 3s);
+  animation-fill-mode: var(--dissapear-animation-fill-mode, forwards);
+}
+
+@keyframes dissapear {
+  0% {
+    opacity: 1;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  75% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+
+.animate-swipe-left {
+  animation-name: swipe-left;
+  animation-duration: .8s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes swipe-left {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-swipe-left-and-disappear {
+  animation:
+    swipe-left 0.5s ease-out forwards,
+    dissapear var(--dissapear-animation-duration, 3s) ease-in-out forwards;
+}

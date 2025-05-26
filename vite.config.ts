@@ -6,8 +6,8 @@ import compression from 'vite-plugin-compression'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
     tailwindcss(),
+    react(),
     compression({
       algorithm: 'brotliCompress',
       ext: '.br',
@@ -18,7 +18,7 @@ export default defineConfig({
     alias: {
       '@shared': '/src/modules/shared',
       '@auth': '/src/modules/auth',
-      '@admin': '/src/modules/admin',
+      '@design-ui': '/src/modules/design-ui',
     },
   },
 })
