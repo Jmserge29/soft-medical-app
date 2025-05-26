@@ -1,19 +1,28 @@
-import { StepProgress } from '@design-ui/components/steps'
-import useCirugias from '../../hooks/useCirugias'
-import { useAuthStore } from '@auth/stores/auth'
+import { StepProgress } from '@design-ui/components/steps';
+import useCirugias from '../../hooks/useCirugias';
+import { useAuthStore } from '@auth/stores/auth';
 
 const MySurgeries = () => {
-  const { user, accessToken } = useAuthStore()
-  const { cargando, cirugias } = useCirugias({ idUsuario: user?.idUsuario ?? 0, accessToken })
+  const { user, accessToken } = useAuthStore();
+  const { cargando, cirugias } = useCirugias({
+    idUsuario: user?.idUsuario ?? 0,
+    accessToken,
+  });
 
   const steps = [
     { id: 1, title: 'Iniciar cirguría', status: 'completed' as const },
     { id: 2, title: 'Cirugía en proceso', status: 'pending' as const },
     { id: 3, title: 'Finaliza cirugía', status: 'pending' as const },
-  ]
+  ];
   return (
     <section className="min-h-screen bg-gray-50 p-6 mt-4">
-      <div className="max-w-7xl mx-auto">
+      {/* Blur */}
+      <div className="absolute left-[600px] blur-[80px] top-18 z-10 bg-purple-300 rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
+      <div className="absolute right-12 z-10 bg-blue-500 blur-[80px] rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
+      <div className="absolute left-[350px] bottom-38 z-10 blur-[80px] bg-indigo-500 rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
+      <div className="absolute right-[500px] bottom-2 z-10 blur-[80px] bg-fuchsia-500 rounded-full w-32 h-32 shadow-2xl shadow-black/50"></div>
+
+      <div className="relative max-w-7xl mx-auto z-20">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Panel de Instrumentos Quirúrgicos
@@ -38,7 +47,7 @@ const MySurgeries = () => {
         </section>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default MySurgeries
+export default MySurgeries;
